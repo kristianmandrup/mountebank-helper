@@ -8,7 +8,7 @@ chai.use(chaiSubset);
 
 
 // import the mountebank helper library
-const mbHelper = require('../src/index');
+const mbHelper = require('../../src/index');
 const Imposter = mbHelper.Imposter;
 const startMbServer = mbHelper.startMbServer;
 const fetch = require('node-fetch');
@@ -21,7 +21,7 @@ describe('Posting to MounteBank', function () {
 
   it('Should return a resolved promise on an is request', function () {
     const sampleResponse = {
-      'uri': '/pets/123',
+      'uri': '/zoo',
       'verb': 'PUT',
       'res': {
         is: {
@@ -40,25 +40,13 @@ describe('Posting to MounteBank', function () {
       'imposterPort': 3000
     });
     testImposter.addRoute(sampleResponse);
-    return testImposter.postToMountebank().should.be.eventually.fulfilled.and.have.property('status').and.equal(201);
-  });
+    return testImposter.postToMountebank().then(res => {
+      console.log({
+        status: res.status,
+        statusText: res.statusText
+      })
 
-  it('Should return a resolved promise on a proxy request', function () {
-    const sampleResponse = {
-      'uri': '/pets/123',
-      'verb': 'PUT',
-      'res': {
-        proxy: {
-          mode: 'proxyOnce',
-          to: 'https://httpbin.org/status/418'
-        }
-      }
-    };
-
-    const testImposter = new Imposter({
-      'imposterPort': 3000
-    });
-    testImposter.addRoute(sampleResponse);
-    return testImposter.postToMountebank().should.be.eventually.fulfilled.and.have.property('status').and.equal(418);
+      res.should.have.property('status').and.equal(201);
+    })
   });
 });

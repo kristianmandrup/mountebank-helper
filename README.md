@@ -95,6 +95,41 @@ This appraoch can also be used for `is` if you want full control or want to dire
 }
 ```
 
+See the tests under `test/mb_post` to see usage examples. Note `inject` have not yet been tested...
+
+<h3>Logging</h3>
+
+The `Imposter` class can be passed a `logging` flag to enable logging (ie. `logging: true`)
+
+You can then use the following log methods for debugging:
+
+- `this._log(msg, data)`
+- `this._warn(msg, data)`
+- `this._error(msg, data)`
+
+This can be very useful when you extend `Imposter` and then log before using `super` to call the subclass method.
+
+```js
+class MyImposter extends Imposter {
+  constructor(options) {
+    super(options)
+    // custom setup logic...
+  }
+
+  _createMBPostRequestBody() {
+    this.log('_createMBPostRequestBody')
+    super._createMBPostRequestBody()
+  }
+
+  addRoute(routeOptions) {
+    this.log('addRoute', {
+      routeOptions
+    })
+    super.addRoute(routeOptions)
+  }
+}
+```
+
 <h3>Testing</h3>
 
 Test are written in mocha/chai

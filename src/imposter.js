@@ -42,6 +42,33 @@ class Imposter {
       'protocol': options.protocol,
       'routeInformation': {}
     };
+
+    this.logging = options.logging
+    this.io = options.io || console
+  }
+
+  _log(msg, data) {
+    if (this.logging) {
+      let log = this.io.log
+      data ? log(msg, data) : log(msg, data)
+    }
+  }
+
+  _warn(msg, data) {
+    if (this.logging) {
+      let log = this.io.log
+      msg = `WARNING: ${msg}`
+      data ? log(msg, data) : log(msg, data)
+    }
+  }
+
+  _error(msg, data) {
+    if (this.logging) {
+      let log = this.io.error || this.io.log
+      msg = `ERROR: ${msg}`
+      data ? log(msg, data) : log(msg, data)
+      throw new Error(msg)
+    }
   }
 
   _normalizeURI(uri) {
@@ -162,25 +189,27 @@ class Imposter {
         const predicates = verbInfo.predicates || []
         let mbPredicates = []
 
-        if (predicates.length > 0) {
-          mbPredicates = predicates.map(predicateObj => {
-            const types = Object.keys(predicateObj)
-            return types.map(predicateType => {
-              let predicate = predicateObj[predicateType]
-              return Imposter._createPredicate(predicateType, predicate);
+        if (!Imposter.isProxy(response)) {
+          if (predicates.length > 0) {
+            mbPredicates = predicates.map(predicateObj => {
+              const types = Object.keys(predicateObj)
+              return types.map(predicateType => {
+                let predicate = predicateObj[predicateType]
+                return Imposter._createPredicate(predicateType, predicate);
+              })
             })
-          })
-          mbPredicates = flatten(mbPredicates)
-        }
+            mbPredicates = flatten(mbPredicates)
+          }
 
-        if (!mbPredicates || mbPredicates.length === 0) {
-          const mbPredicate = Imposter._createPredicate('matches', {
-            'method': verb,
-            'path': route
-          });
-          mbPredicates.push(mbPredicate)
-        } else {
-          // no predicates
+          if (!mbPredicates || mbPredicates.length === 0) {
+            const mbPredicate = Imposter._createPredicate('matches', {
+              'method': verb,
+              'path': route
+            });
+            mbPredicates.push(mbPredicate)
+          } else {
+            // no predicates
+          }
         }
 
         // shove these portions into our final complete response in the form of a stub
@@ -197,6 +226,16 @@ class Imposter {
     return ['is', 'proxy', 'inject'].includes(type)
   }
 
+  static isQuickResponse(response) {
+    return response.proxy ||
+      response.inject ||
+      response.is
+  }
+
+  static isProxy(response) {
+    return response.to
+  }
+
   /**
    * This will take in the desired response components (status, headers, and body) and construct a mountebank-style response. Takes care of rigid formatting that MB requires
    * @param  {Number} statuscode The status code that the user wishes to have returned from the imposter
@@ -205,21 +244,11 @@ class Imposter {
    * @return {Object}            The mountebank-formatted response object that can be added as part of a mountebank stub
    */
   static _createResponse(responseObj = {}, headers, body) {
-    function isQuickResponse(response) {
-      return responseObj.proxy ||
-        responseObj.inject ||
-        responseObj.is
-    }
-
-    function isProxy(response) {
-      return responseObj.to
-    }
-
-    if (isQuickResponse(responseObj)) {
+    if (Imposter.isQuickResponse(responseObj)) {
       return responseObj
     }
 
-    if (isProxy(responseObj)) {
+    if (Imposter.isProxy(responseObj)) {
       return {
         proxy: responseObj
       }
@@ -493,14 +522,6 @@ class Imposter {
    */
   postToMountebank() {
     const MBBody = this._createMBPostRequestBody();
-    const stub = MBBody.stubs[0]
-
-    // console.log({
-    //   MBBody,
-    //   stub,
-    //   responses: stub.responses
-    // })
-
     const fetchReturnValue = fetch(`http://127.0.0.1:${this.ImposterInformation.mountebankPort}/imposters`, {
       method: 'POST',
       headers: {
