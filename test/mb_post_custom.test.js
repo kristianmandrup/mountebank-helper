@@ -50,7 +50,7 @@ describe('Posting to MounteBank', function () {
       'res': {
         proxy: {
           mode: 'proxyOnce',
-          to: 'https://httpbin.org/status/201'
+          to: 'https://httpbin.org/status/418'
         }
       }
     };
@@ -59,6 +59,6 @@ describe('Posting to MounteBank', function () {
       'imposterPort': 3000
     });
     testImposter.addRoute(sampleResponse);
-    return testImposter.postToMountebank().should.be.eventually.fulfilled.and.have.property('status').and.equal(201);
+    return testImposter.postToMountebank().should.be.eventually.fulfilled.and.have.property('status').and.equal(418);
   });
 });
