@@ -93,7 +93,7 @@ class ImposterManager extends Logger {
   }
 
   _routeName(route) {
-    return route.name || [route.uri, route.verb].join(',')
+    return route.name || [route.verb, route.uri].join(':')
   }
 
   postToMountebank() {

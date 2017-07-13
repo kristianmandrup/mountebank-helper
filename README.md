@@ -152,6 +152,11 @@ $ ./node_modules/mocha/bin/mocha test/custom_response_type.test.js
 
 Additionally an `ImposterManager` is made available which makes it a little more convenient to work with the `Imposter`.
 
+First define a list of responses and export as a collection, such as an
+`Object` (key/value). By default the key will be used as route name unless you add a `name` property to a given response.
+
+If you pass a list (`Array`) of responses, it will fallback to concatenating `verb` and `uri` so that the `update` response would be named: `PUT:/pets/123`
+
 ```js
 const update = {
   'uri': '/pets/123',
@@ -185,7 +190,21 @@ const imposterManager = createImposterManager().addRoutes(responses)
 imposterManager.start()
 ```
 
-The Manager is still WIP.
+You also have access to a `response` object with a fluent API that can be used to update a given response:
+
+- `updateCode`
+- `updateHeaders`
+- `updateBody`
+
+Example, updating the body of a previous response (stub)
+
+```js
+imposterManager.response
+  .updateBody(body, path)
+  .updateCode(201, path)
+```
+
+NOTE: The Manager is still WIP, is not tested and might contain bugs. Please help improve and test it.
 
 <h1>API</h1>
 
