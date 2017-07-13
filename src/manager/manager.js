@@ -21,6 +21,11 @@ export class ImposterManager {
   constructor(config, opts) {
     super('ImposterManager', opts)
     this._defaults = config.defaults
+    this.routes = new Set()
+  }
+
+  clearRoutes() {
+    this.routes.clear()
   }
 
   get response() {
@@ -58,9 +63,7 @@ export class ImposterManager {
   }
 
   addRoutes(responses) {
-    this._validateObj(responses, 'addRoutes: responses')
     try {
-      this.routes = Object.keys(responses)
       responses = toArray(responses)
       responses.map(response => this.addRoute(response))
     } catch (err) {
@@ -71,9 +74,14 @@ export class ImposterManager {
     return this
   }
 
-  addRoute(response) {
-    this._validateObj(response, 'addRoute: response')
-    this.imposter.addRoute(response)
+  addRoute(route) {
+    this._validateObj(route, 'addRoute: response')
+    this.imposter.addRoute(route)
+    this.routes.add(this._routeName(route) || 'unknown')
+  }
+
+  _routeName(route) {
+    return route.name || [route.uri, route.verb].join(',')
   }
 
   postToMountebank() {
