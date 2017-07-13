@@ -1,25 +1,28 @@
-import mbHelper from 'mountebank-helper'
-import {
+const mbHelper = require('..')
+const {
   Response
-} from './response'
-import {
+} = require('./response')
+
+const {
   toArray,
   isObject
-} from './helpers'
+} = require('./helpers')
 
 function merge(...objs) {
   return Object.assign({}, ...objs)
 }
 
+const Logger = require('./util/logger')
+
 // create the skeleton for the imposter (does not post to MB)
-export function createImposterManager(config = {}) {
-  config = merge(defaults.config, config)
-  return new mbHelper.Imposter(config)
+function createImposterManager(config = {}, opts = {}) {
+  return new ImposterManager(config, opts)
 }
 
-export class ImposterManager {
-  constructor(config, opts) {
-    super('ImposterManager', opts)
+class ImposterManager extends Logger {
+  constructor(config = {}, opts) {
+    super('ImposterManager', opts || config)
+    this.config = config
     this._defaults = config.defaults
     this.routes = new Set()
   }
@@ -55,7 +58,7 @@ export class ImposterManager {
   }
 
   _validateObj(obj, msg) {
-    if (!isObject(responses)) {
+    if (!isObject(obj)) {
       this.error(msg, {
         obj
       })
@@ -64,6 +67,14 @@ export class ImposterManager {
 
   addRoutes(responses) {
     try {
+      if (isObject(responses)) {
+        // use each key as default name
+        Object.keys(responses).map(key => {
+          let route = responses[key]
+          this.addRoute(route, key)
+        })
+        return
+      }
       responses = toArray(responses)
       responses.map(response => this.addRoute(response))
     } catch (err) {
@@ -74,10 +85,11 @@ export class ImposterManager {
     return this
   }
 
-  addRoute(route) {
+  addRoute(route, name) {
     this._validateObj(route, 'addRoute: response')
     this.imposter.addRoute(route)
-    this.routes.add(this._routeName(route) || 'unknown')
+    let defaultName = 'unknown' + (this.routes.size || this.routes.length)
+    this.routes.add(route.name || name || this._routeName(route) || defaultName)
   }
 
   _routeName(route) {
@@ -89,7 +101,12 @@ export class ImposterManager {
   }
 
   create(config = {}) {
-    config = Object.assign({}, this.defaults.config, config)
-    return this.imposter = new mbHelper.Imposter(config)
+    let fullConfig = Object.assign({}, this.defaults.config || {}, this.config || {}, config)
+    return this.imposter = new mbHelper.Imposter(fullConfig)
   }
+}
+
+module.exports = {
+  createImposterManager,
+  ImposterManager
 }

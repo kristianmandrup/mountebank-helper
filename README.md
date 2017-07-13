@@ -99,7 +99,7 @@ See the tests under `test/mb_post` to see usage examples. Note `inject` have not
 
 <h3>Logging</h3>
 
-The `Imposter` class can be passed a `logging` flag to enable logging (ie. `logging: true`)
+Both the `Imposter` and `ImposterManager` class can be passed a `logging` flag to enable logging (ie. `logging: true`)
 
 You can then use the following log methods for debugging:
 
@@ -107,7 +107,7 @@ You can then use the following log methods for debugging:
 - `this._warn(msg, data)`
 - `this._error(msg, data)`
 
-This can be very useful when you extend `Imposter` and then log before using `super` to call the subclass method.
+This can be very useful when you extend the base class and then `log` before using `super` to call the subclass method.
 
 ```js
 class MyImposter extends Imposter {

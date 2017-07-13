@@ -1,4 +1,4 @@
-export class Response {
+module.exports = class Response {
   constructor(imposter) {
     this.imposter = imposter
   }

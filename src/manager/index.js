@@ -1,5 +1,1 @@
-export {
-  createImposterManager,
-  ImposterManager
-}
-from './manager'
+module.exports = require('./manager')

@@ -11,8 +11,9 @@ function flatten(data) {
   return data.reduce((r, e) => r.concat(Array.isArray(e) ? flatten(e) : [e]), [])
 }
 
+const Logger = require('./util/logger')
 
-class Imposter {
+class Imposter extends Logger {
   /**
    * Sets up the skeleton for the routeInformation POST request body that will be sent to the Mountebank server to set up the imposter
    * @param  {Object} options     The set of options to configure the imposter
@@ -22,6 +23,7 @@ class Imposter {
    * @return {Object }         Returns an instance of the Imposter class
    */
   constructor(options) {
+    super('Imposter', options)
     if (!_.isObject(options)) {
       throw new TypeError('options must be a Object');
     }
@@ -42,33 +44,6 @@ class Imposter {
       'protocol': options.protocol,
       'routeInformation': {}
     };
-
-    this.logging = options.logging
-    this.io = options.io || console
-  }
-
-  _log(msg, data) {
-    if (this.logging) {
-      let log = this.io.log
-      data ? log(msg, data) : log(msg, data)
-    }
-  }
-
-  _warn(msg, data) {
-    if (this.logging) {
-      let log = this.io.log
-      msg = `WARNING: ${msg}`
-      data ? log(msg, data) : log(msg, data)
-    }
-  }
-
-  _error(msg, data) {
-    if (this.logging) {
-      let log = this.io.error || this.io.log
-      msg = `ERROR: ${msg}`
-      data ? log(msg, data) : log(msg, data)
-      throw new Error(msg)
-    }
   }
 
   _normalizeURI(uri) {
