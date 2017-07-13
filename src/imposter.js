@@ -80,14 +80,26 @@ class Imposter {
     if (routeOptions.predicates && !_.isObject(routeOptions.predicates)) {
       throw new TypeError('routeOptions.predicates must be an object');
     }
-    if (!_.isNumber(routeOptions.res.statusCode)) {
-      throw new TypeError('routeOptions.res.statusCode must be a number');
-    }
-    if (!_.isString(routeOptions.res.responseBody)) {
-      throw new TypeError('routeOptions.res.responseBody must be a string');
-    }
-    if (!_.isObject(routeOptions.res.responseHeaders)) {
-      throw new TypeError('routeOptions.res.responseHeaders must be an object');
+
+    let res = routeOptions.res
+    res.type = 'is'
+
+    // we only test on response params if we are implicitly using 'is' respone type
+    if (res.is || res.proxy || res.inject) {
+      // hello
+      res = res.is || res.proxy || res.inject
+      if (res.proxy) res.type = 'proxy'
+      if (res.inject) res.type = 'inject'
+    } else {
+      if (!_.isNumber(res.statusCode)) {
+        throw new TypeError('routeOptions.res.statusCode must be a number');
+      }
+      if (!_.isString(res.responseBody)) {
+        throw new TypeError('routeOptions.res.responseBody must be a string');
+      }
+      if (!_.isObject(res.responseHeaders)) {
+        throw new TypeError('routeOptions.res.responseHeaders must be an object');
+      }
     }
 
     routeOptions.predicates = routeOptions.predicates || []
@@ -102,7 +114,7 @@ class Imposter {
       let verbInfo = uriInfo[verb]
       verbInfo = verbInfo || {}
       verbInfo.method = verb
-      verbInfo.response = routeOptions.res;
+      verbInfo.response = res;
       verbInfo.predicates = routeOptions.predicates;
       uriInfo[verb] = verbInfo
     }
@@ -111,7 +123,7 @@ class Imposter {
       uriInfo = {
         [verb]: {
           method: routeOptions.verb,
-          response: routeOptions.res,
+          response: res,
           predicates: routeOptions.predicates,
         }
       };
@@ -140,19 +152,20 @@ class Imposter {
         const verbInfo = routeInfo[verb]
         const response = verbInfo.response
         // extract the necessary attributes from our response (a verb and route uniquely identifies a single response)
-        const statusCode = response.statusCode;
-        const responseHeaders = response.responseHeaders;
-        const responseBody = response.responseBody;
+        // const statusCode = response.statusCode;
+        // const responseHeaders = response.responseHeaders;
+        // const responseBody = response.responseBody;
 
         // create the MB friendly predicate and response portions
-        const mbResponse = Imposter._createResponse(statusCode, responseHeaders, responseBody);
+        const mbResponse = Imposter._createResponse(response);
 
         const predicates = verbInfo.predicates || []
         let mbPredicates = []
 
         if (predicates.length > 0) {
           mbPredicates = predicates.map(predicateObj => {
-            return Object.keys(predicateObj).map(predicateType => {
+            const types = Object.keys(predicateObj)
+            return types.map(predicateType => {
               let predicate = predicateObj[predicateType]
               return Imposter._createPredicate(predicateType, predicate);
             })
@@ -180,6 +193,9 @@ class Imposter {
     return CompleteResponse;
   }
 
+  static validateResponseType(type) {
+    return ['is', 'proxy', 'inject'].includes(type)
+  }
 
   /**
    * This will take in the desired response components (status, headers, and body) and construct a mountebank-style response. Takes care of rigid formatting that MB requires
@@ -188,23 +204,56 @@ class Imposter {
    * @param  {String} body       The body to be returned as part of the imposters response
    * @return {Object}            The mountebank-formatted response object that can be added as part of a mountebank stub
    */
-  static _createResponse(statuscode, headers, body) {
-    if (!_.isNumber(statuscode)) {
+  static _createResponse(responseObj = {}, headers, body) {
+    function isQuickResponse(response) {
+      return responseObj.proxy ||
+        responseObj.inject ||
+        responseObj.is
+    }
+
+    function isProxy(response) {
+      return responseObj.to
+    }
+
+    if (isQuickResponse(responseObj)) {
+      return responseObj
+    }
+
+    if (isProxy(responseObj)) {
+      return {
+        proxy: responseObj
+      }
+    }
+
+    let statuscode
+    if (headers) {
+      statuscode = responseObj
+    } else {
+      statuscode = responseObj.statusCode
+      headers = responseObj.responseHeaders || responseObj.headers
+      body = responseObj.responseBody || responseObj.body
+    }
+
+    const finalResponse = {};
+    const response = {
+      statuscode: statuscode || 200,
+      headers: headers || {},
+      body
+    }
+
+    if (!_.isNumber(response.statuscode)) {
       throw new TypeError('statuscode must be a number');
     }
-    if (!_.isObject(headers)) {
+    if (!_.isObject(response.headers)) {
       throw new TypeError('headers must be an object');
     }
     if (!_.isString(body)) {
       throw new TypeError('body must be a string');
     }
-    const finalResponse = {};
-    const response = {};
 
-    response.statuscode = statuscode;
-    response.headers = headers;
-    response.body = body;
-    /* A mountebank formatting thing where each response has a type (is, proxy, or inject) and this type must be specified in the form of a key where the value the actual response */
+    /* A mountebank formatting thing where each response has a type
+    (is, proxy, or inject) and this type must be specified in the
+    form of a key where the value the actual response */
     finalResponse.is = response;
     return finalResponse;
   }
@@ -444,6 +493,14 @@ class Imposter {
    */
   postToMountebank() {
     const MBBody = this._createMBPostRequestBody();
+    const stub = MBBody.stubs[0]
+
+    // console.log({
+    //   MBBody,
+    //   stub,
+    //   responses: stub.responses
+    // })
+
     const fetchReturnValue = fetch(`http://127.0.0.1:${this.ImposterInformation.mountebankPort}/imposters`, {
       method: 'POST',
       headers: {

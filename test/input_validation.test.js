@@ -95,6 +95,50 @@ describe('Input Validation', function () {
         }));
       }).to.not.throw();
     });
+
+    describe('From object', function () {
+      it('Should throw if statuscode is not a number', function () {
+        expect(function () {
+          Imposter._createResponse({
+            statusCode: 'hello',
+            responseHeaders: {
+              'Content-Type': 'application/json'
+            },
+            responseBody: JSON.stringify({
+              'hello': 'world'
+            })
+          });
+        }).to.throw('statuscode must be a number');
+      });
+
+      it('Should NOT throw if proper arguments are specified', function () {
+        expect(function () {
+          Imposter._createResponse({
+            statusCode: 200,
+            responseHeaders: {
+              'Content-Type': 'application/json'
+            },
+            responseBody: JSON.stringify({
+              'hello': 'world'
+            })
+          })
+        }).to.not.throw();
+      });
+
+      it('Should also work with nice args', function () {
+        expect(function () {
+          Imposter._createResponse({
+            statusCode: 200,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              'hello': 'world'
+            })
+          })
+        }).to.not.throw();
+      });
+    });
   });
 
   describe('Predicate Construction', function () {

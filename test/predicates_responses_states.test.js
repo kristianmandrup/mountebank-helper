@@ -49,6 +49,7 @@ describe('Route Information and MB Post Request Body', function () {
     const GET = {
       method: 'GET',
       response: {
+        type: 'is',
         statusCode: 200,
         responseHeaders: {
           'Content-Type': 'application/json'
@@ -60,6 +61,7 @@ describe('Route Information and MB Post Request Body', function () {
     const POST = {
       method: 'POST',
       response: {
+        type: 'is',
         statusCode: 200,
         responseHeaders: {
           'Content-Type': 'application/json'
@@ -72,6 +74,7 @@ describe('Route Information and MB Post Request Body', function () {
     const PUT = {
       method: 'PUT',
       response: {
+        type: 'is',
         statusCode: 200,
         responseHeaders: {
           'Content-Type': 'application/json'
@@ -83,6 +86,7 @@ describe('Route Information and MB Post Request Body', function () {
     const DELETE = {
       method: 'DELETE',
       response: {
+        type: 'is',
         statusCode: 200,
         responseHeaders: {
           'Content-Type': 'application/json'

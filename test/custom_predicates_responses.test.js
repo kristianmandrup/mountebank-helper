@@ -31,56 +31,63 @@ describe('Route Information with custom predicates and MB Post Request Body', fu
     }
   }]
 
+  const GET = {
+    method: 'GET',
+    response: {
+      type: 'is',
+      statusCode: 200,
+      responseHeaders: {
+        'Content-Type': 'application/json'
+      },
+      responseBody: '{"/areas":"GET"}'
+    },
+    predicates
+  };
+  const POST = {
+    method: 'POST',
+    response: {
+      type: 'is',
+      statusCode: 200,
+      responseHeaders: {
+        'Content-Type': 'application/json'
+      },
+      responseBody: '{"/areas":"POST"}'
+    },
+    predicates
+  }
+
+  const PUT = {
+    method: 'PUT',
+    response: {
+      type: 'is',
+      statusCode: 200,
+      responseHeaders: {
+        'Content-Type': 'application/json'
+      },
+      responseBody: '{"/areas":"PUT"}'
+    },
+    predicates
+  }
+
+  const DELETE = {
+    method: 'DELETE',
+    response: {
+      type: 'is',
+      statusCode: 200,
+      responseHeaders: {
+        'Content-Type': 'application/json'
+      },
+      responseBody: '{"/areas":"DELETE"}'
+    },
+    predicates
+  }
+
   const bunchOfResponses = myUtil.returnResponsesForAllVerbs('/areas', predicates);
   it('Imposter state should contain information with custom predicates after several addRoute calls', function () {
     bunchOfResponses.forEach((element, index, array) => {
+      // console.log('addRoute', element)
       someImposter.addRoute(element);
     });
-    const GET = {
-      method: 'GET',
-      response: {
-        statusCode: 200,
-        responseHeaders: {
-          'Content-Type': 'application/json'
-        },
-        responseBody: '{"/areas":"GET"}'
-      },
-      predicates
-    };
-    const POST = {
-      method: 'POST',
-      response: {
-        statusCode: 200,
-        responseHeaders: {
-          'Content-Type': 'application/json'
-        },
-        responseBody: '{"/areas":"POST"}'
-      },
-      predicates
-    }
-
-    const PUT = {
-      method: 'PUT',
-      response: {
-        statusCode: 200,
-        responseHeaders: {
-          'Content-Type': 'application/json'
-        },
-        responseBody: '{"/areas":"PUT"}'
-      },
-      predicates
-    }
-    const DELETE = {
-      method: 'DELETE',
-      response: {
-        statusCode: 200,
-        responseHeaders: {
-          'Content-Type': 'application/json'
-        },
-        responseBody: '{"/areas":"DELETE"}'
-      },
-      predicates
-    }
 
     const response = someImposter.getStateResponse()
     const areas = response['/areas']

@@ -65,6 +65,54 @@ mbHelper.startMbServer(2525)
 
 Now you can navigate to <a href = 'http://localhost:3000/hello'>localhost:3000/hello</a> to see the mocked response!
 
+<h3>Proxy & Inject </h3>
+
+In order to use `proxy` or `inject` responses, simply provide the response in the full response format as expected by Mountebank.
+
+See [httpbin](https://httpbin.org) for various ways you can test a proxy.
+
+```js
+{
+  proxy: {
+    mode: 'proxyOnce',
+    to: 'https://httpbin.org/status/200'
+  }
+}
+```
+
+This appraoch can also be used for `is` if you want full control or want to directly reuse existing responses in the "traditional" format
+
+```js
+{
+  "is": {
+    "statusCode": 201,
+    "headers": {
+      "Location": "http://localhost:4545/customers/123",
+      "Content-Type": "application/xml"
+    },
+    "body": "<customer><email>customer@test.com</email></customer>"
+  }
+}
+```
+
+<h3>Testing</h3>
+
+Test are written in mocha/chai
+
+Run all tests:
+
+```bash
+$ npm test
+```
+
+Run a single file test suite:
+
+```bash
+$ ./node_modules/mocha/bin/mocha test/custom_response_type.test.js
+```
+
+
+
 <h1>ImposterManager</h1>
 
 Additionally an `ImposterManager` is made available which makes it a little more convenient to work with the `Imposter`.
