@@ -37,7 +37,7 @@ describe('Route Information with custom predicates and MB Post Request Body', fu
       someImposter.addRoute(element);
     });
     const GET = {
-      name: 'GET',
+      method: 'GET',
       response: {
         statusCode: 200,
         responseHeaders: {
@@ -48,7 +48,7 @@ describe('Route Information with custom predicates and MB Post Request Body', fu
       predicates
     };
     const POST = {
-      name: 'POST',
+      method: 'POST',
       response: {
         statusCode: 200,
         responseHeaders: {
@@ -60,7 +60,7 @@ describe('Route Information with custom predicates and MB Post Request Body', fu
     }
 
     const PUT = {
-      name: 'PUT',
+      method: 'PUT',
       response: {
         statusCode: 200,
         responseHeaders: {
@@ -71,7 +71,7 @@ describe('Route Information with custom predicates and MB Post Request Body', fu
       predicates
     }
     const DELETE = {
-      name: 'DELETE',
+      method: 'DELETE',
       response: {
         statusCode: 200,
         responseHeaders: {

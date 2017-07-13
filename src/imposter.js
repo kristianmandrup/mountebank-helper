@@ -101,7 +101,7 @@ class Imposter {
     if (uriInfo != null) {
       let verbInfo = uriInfo[verb]
       verbInfo = verbInfo || {}
-      verbInfo.name = verb
+      verbInfo.method = verb
       verbInfo.response = routeOptions.res;
       verbInfo.predicates = routeOptions.predicates;
       uriInfo[verb] = verbInfo
@@ -110,7 +110,7 @@ class Imposter {
     else {
       uriInfo = {
         [verb]: {
-          name: routeOptions.verb,
+          method: routeOptions.verb,
           response: routeOptions.res,
           predicates: routeOptions.predicates,
         }

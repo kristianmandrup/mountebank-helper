@@ -1,10 +1,7 @@
 <h1> MountebankHelper </h1>
 
-
 [![Build Status](https://travis-ci.org/Tzinov15/mountebank-helper.svg?branch=master)](https://travis-ci.org/Tzinov15/mountebank-helper)
 [![Coverage Status](https://coveralls.io/repos/github/Tzinov15/mountebank-helper/badge.svg?branch=master&bust=1)](https://coveralls.io/github/Tzinov15/mountebank-helper?branch=master)
-
-
 
 A simple Javascript wrapper to easily interface with <a href = 'http://www.mbtest.org/'>Mountebank</a> and not have to deal with its
 abstract object structure requirements. See **[SwaggerBank](https://tzinov15.github.io/swagger-bank/)** for easy intergration with Swagger Specs/YAML files <br><br>
@@ -12,7 +9,6 @@ abstract object structure requirements. See **[SwaggerBank](https://tzinov15.git
 While not providing an API for the full feature list that mountebank has, MountebankHelper provides enough functionality so that it reflects the core purpose of Mountebank and is easy to use at the same time. <br>
 
 In the future this library will probably become a full-fledged Javascript wrapper around several of Mountebanks powerful CLI commands
-
 
 <h1> Usage </h1>
 
@@ -43,9 +39,15 @@ const another_response = {
     'statusCode': 200,
     'responseHeaders' : { 'Content-Type' : 'application/json' },
     'responseBody' : JSON.stringify({ 'somePetAttribute' : 'somePetValue' })
-  }
+  },
+  predicates: [{
+    deepEquals: {
+      'body': 'Hello'
+    }
+  }, {
+    // ...
+  }]
 };
-
 
 // add our responses to our imposter
 firstImposter.addRoute(sample_response);
@@ -59,10 +61,48 @@ mbHelper.startMbServer(2525)
   console.log('Imposter Posted! Go to http://localhost:3000/hello');
   });
 });
-
 ```
 
 Now you can navigate to <a href = 'http://localhost:3000/hello'>localhost:3000/hello</a> to see the mocked response!
+
+<h1>ImposterManager</h1>
+
+Additionally an `ImposterManager` is made available which makes it a little more convenient to work with the `Imposter`.
+
+```js
+const update = {
+  'uri': '/pets/123',
+  'verb': 'PUT',
+  'res': {
+    // ...
+  }
+}
+
+const create = {
+  'uri': '/pets/123',
+  'verb': 'POST',
+  'res': {
+    // ...
+  }
+}
+
+export default {
+  update,
+  create
+}
+```
+
+Now add `responses` as routes and start the server using the manager.
+
+```js
+import responses from './responses'
+
+const { createImposterManager } = require('mountebank-helper/manager');
+const imposterManager = createImposterManager().addRoutes(responses)
+imposterManager.start()
+```
+
+The Manager is still WIP.
 
 <h1>API</h1>
 
@@ -78,7 +118,8 @@ A single instance of an Imposter class represents a single Mountebank imposter l
 
 <h3>Imposter.addRoute(responseObject)</h3>
 Adds a new <b> stub </b> to the imposter. A stub represents a combination of a predicate (conditions to be met) and a response (the response to be returned when those conditions are met). <br>
-This library only provides functionality for the <b>equals</b> predicate meaning, only complete response matches can be used as a predicate. See usage at end of README
+
+If no predicates are provided, a default<b>equals</b> predicate (matching on verb and path) is added. See more on usage at end of README
 
 <h5> responseObject </h5>
 
@@ -88,10 +129,10 @@ This library only provides functionality for the <b>equals</b> predicate meaning
   "verb" : GET,           // HTTP method against which we are matching an incoming request
   "res" :                 // The response that is to be returned when the above conditions get met
     {
-      "statusCode" : 200,        
-      "responseHeaders" : {"Content-Type" : "application/json"},  
+      "statusCode" : 200,
+      "responseHeaders" : {"Content-Type" : "application/json"},
       "responseBody" : JSON.stringify({"hello" : "world"})
-    }           
+    }
 }
 ```
 
@@ -133,7 +174,7 @@ The content of the new headers that is to be returned by the imposter. Must be a
 
 <h2> Functionality / Features Not Yet Implemented </h2>
 <ul>
-<li> Support for fuzzy matching (via regex) on incoming-request body content (as opposed to exact path match) [DONE] </li> 
+<li> Support for fuzzy matching (via regex) on incoming-request body content (as opposed to exact path match) [DONE] </li>
 <li> Include the process of starting the Mountebank server as part of existing Functionality (abstract it away from the client so they don't have to call startMbServer() )
 <li> Travis CI Build Setup [DONE] </li>
 <li> Post to NPM as installable module [DONE] </li>
