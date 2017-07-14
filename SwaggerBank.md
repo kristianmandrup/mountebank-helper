@@ -20,7 +20,7 @@ function constructCompleteResponse (options) {
 }
 ```
 
-It will generate response data that match the Swagger schema definitions in the yaml file.
+It will generate response data that match the [Swagger schema definitions](https://swagger.io/specification/) in the `yaml` file.
 
 The `area_id` is a required string in `uuid` format
 
