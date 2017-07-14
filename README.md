@@ -192,9 +192,9 @@ imposterManager.start()
 
 You also have access to a `response` object with a fluent API that can be used to update a given response:
 
-- `updateCode`
-- `updateHeaders`
-- `updateBody`
+- `updateCode` (or `updateStatus`)
+- `updateHeaders` (object)
+- `updateBody` (string)
 
 Example, updating the body of a previous response (stub)
 
@@ -274,11 +274,119 @@ The content of the new headers that is to be returned by the imposter. Must be a
 }
 ```
 
-<h2> Functionality / Features Not Yet Implemented </h2>
-<ul>
-<li> Support for fuzzy matching (via regex) on incoming-request body content (as opposed to exact path match) [DONE] </li>
-<li> Include the process of starting the Mountebank server as part of existing Functionality (abstract it away from the client so they don't have to call startMbServer() )
-<li> Travis CI Build Setup [DONE] </li>
-<li> Post to NPM as installable module [DONE] </li>
-<li> Increase Code Coverage to 95% </li>
-</ul>
+<h2>Using the stubbed API in your application test suite</h2>
+
+Assuming Mountebank has been started on the default port `3000`.
+Simply make requests to the API at `localhost:3000` (or whatever your host may be).
+
+You can use assertion/expectation frameworks such as:
+
+### Super
+
+[supertest](https://www.npmjs.com/package/supertest) HTTP assertions via [superagent](https://github.com/visionmedia/superagent)
+
+Use [superagent-promise](https://www.npmjs.com/package/superagent-promise) for Promise support:
+
+```js
+var Promise = this.Promise || require('promise');
+var agent = require('superagent-promise')(require('superagent'), Promise);
+
+agent
+  .get('localhost:3000/products')
+  .query({ action: 'edit', city: 'London' })
+  .end()
+  .then(onResult(res) => {
+    // test result
+  }, onError(err) {
+    // test err
+  });
+```
+
+Alternatively use `async`/`await`, here using [ava test runner](https://github.com/avajs/ava)
+
+```js
+import test from 'ava'
+test('products', async t => {
+  try {
+    result = await agent
+      .get('localhost:3000/products')
+      .query({ action: 'edit', city: 'London' })
+      .end()
+    // test result
+  } catch (err) {
+    // test err
+  }
+})
+```
+
+### Nock
+
+[nock](https://www.npmjs.com/package/nock) HTTP mocking and expectations
+
+```js
+var scope = nock('localhost:3000')
+   .post('/products', products)
+   .reply(201, function(uri, requestBody) {
+     return requestBody;
+   });
+```
+
+You can [enable/disable real HTTP requests](https://github.com/node-nock/nock#enabledisable-real-http-request) (to the Mountebank server) as needed.
+
+`nock.enableNetConnect()`
+
+You can also use the [recording](https://github.com/node-nock/nock#recording) feature to record Mountebank generated responses as nock mocks!
+
+```js
+nock.recorder.rec({
+  dont_print: true,
+  output_objects: true,
+  enable_reqheaders_recording: true
+})
+```
+
+At the end you can then completely [turn off nock](https://github.com/node-nock/nock#turning-nock-off-experimental) when you full API has been implemented on the backend!
+
+`$ NOCK_OFF=true node my_test.js`
+
+Nock has loads of other powerful options, including:
+
+- [fixture recording](https://github.com/node-nock/nock#nock-back)
+
+### Chai
+
+[chai-http](https://github.com/chaijs/chai-http) (chai HTTP assertions)
+
+```js
+const chai = require('chai')
+  , chaiHttp = require('chai-http');
+  . app = 'localhost:3000'
+
+chai.use(chaiHttp);
+
+chai.request(app)
+  .get('/')
+
+chai.request(app)
+  .put('/user/me')
+  .set('X-API-Key', 'foobar')
+  .send({ password: '123', confirmPassword: '123' })
+  .end(function (err, res) {
+     expect(res).to.have.status(200);
+     // ...
+  })
+```
+
+Also supports a `Promise` API:
+
+```js
+chai.request(app)
+  .put('/user/me')
+  .send({ password: '123', confirmPassword: '123' })
+  .then(function (res) {
+     expect(res).to.have.status(200);
+  })
+  .catch(function (err) {
+     throw err;
+  })
+```
