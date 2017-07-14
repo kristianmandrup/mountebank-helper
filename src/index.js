@@ -3,7 +3,17 @@
 const mb = require('mountebank');
 const tcpPortUsed = require('tcp-port-used');
 
-exports.manager = require('./manager');
+const manager = require('./manager');
+
+exports.manager = manager
+const {
+  createImposterManager,
+  ImposterManager
+} = manager
+
+exports.createImposterManager = createImposterManager
+exports.ImposterManager = ImposterManager
+
 exports.Imposter = require('./imposter');
 
 exports.startMbServer = function (port) {

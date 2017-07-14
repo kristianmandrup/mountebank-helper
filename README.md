@@ -184,8 +184,11 @@ Now add `responses` as routes and start the server using the manager.
 
 ```js
 import responses from './responses'
+const {
+  createImposterManager,
+  ImposterManager
+} = require('mountebank-helper');
 
-const { createImposterManager } = require('mountebank-helper/manager');
 const imposterManager = createImposterManager().addRoutes(responses)
 imposterManager.start()
 ```
