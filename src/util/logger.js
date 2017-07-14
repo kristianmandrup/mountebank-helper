@@ -12,22 +12,22 @@ module.exports = class Logger {
 
   _log(msg, data) {
     if (this.logging) {
-      let log = this.io.log
-      _writeMsg(io, `INFO: ${msg}`, data)
+      let io = this.io.log
+      this._writeMsg(io, `INFO: ${msg}`, data)
     }
   }
 
   _warn(msg, data) {
     if (this.logging) {
       let io = this.io.log
-      _writeMsg(io, `WARNING: ${msg}`, data)
+      this._writeMsg(io, `WARNING: ${msg}`, data)
     }
   }
 
   _error(msg, data) {
     if (this.logging) {
       let io = this.io.error || this.io.log
-      _writeMsg(io, `ERROR: ${msg}`, data)
+      this._writeMsg(io, `ERROR: ${msg}`, data)
       throw new Error(msg)
     }
   }

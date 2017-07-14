@@ -1,6 +1,7 @@
 module.exports = class Response {
   constructor(imposter) {
     this.imposter = imposter
+    this.updateStatus = this.updateCode.bind(this)
   }
 
   updateBody(newBody, pathToUpdate) {

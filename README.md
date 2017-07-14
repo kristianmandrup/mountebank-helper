@@ -204,7 +204,7 @@ imposterManager.response
   .updateCode(201, path)
 ```
 
-NOTE: The Manager is still WIP, is not tested and might contain bugs. Please help improve and test it.
+Please see the `manager` test suite for more detailed usage examples.
 
 <h1>API</h1>
 

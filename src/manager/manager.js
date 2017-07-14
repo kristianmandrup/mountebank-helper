@@ -1,7 +1,5 @@
 const mbHelper = require('..')
-const {
-  Response
-} = require('./response')
+const Response = require('./response')
 
 const {
   toArray,
@@ -12,7 +10,7 @@ function merge(...objs) {
   return Object.assign({}, ...objs)
 }
 
-const Logger = require('./util/logger')
+const Logger = require('../util/logger')
 
 // create the skeleton for the imposter (does not post to MB)
 function createImposterManager(config = {}, opts = {}) {
@@ -22,13 +20,23 @@ function createImposterManager(config = {}, opts = {}) {
 class ImposterManager extends Logger {
   constructor(config = {}, opts) {
     super('ImposterManager', opts || config)
-    this.config = config
-    this._defaults = config.defaults
+    this.config = config || {}
+    this.configDefaults(this.config.defaults)
     this.routes = new Set()
   }
 
   clearRoutes() {
     this.routes.clear()
+  }
+
+  configDefaults(config) {
+    if (isObject(config)) {
+      this._defaults = config
+    }
+  }
+
+  get autoCreate() {
+    return this.config.autoCreate || this.defaults.autoCreate
   }
 
   get response() {
@@ -68,6 +76,9 @@ class ImposterManager extends Logger {
   addRoutes(responses) {
     try {
       if (isObject(responses)) {
+        this._log('add routes k/v', {
+          routes: responses
+        })
         // use each key as default name
         Object.keys(responses).map(key => {
           let route = responses[key]
@@ -75,7 +86,11 @@ class ImposterManager extends Logger {
         })
         return
       }
+
       responses = toArray(responses)
+      this._log('add routes list', {
+        routes: responses
+      })
       responses.map(response => this.addRoute(response))
     } catch (err) {
       this.error('addRoutes: invalid responses', {
@@ -87,9 +102,25 @@ class ImposterManager extends Logger {
 
   addRoute(route, name) {
     this._validateObj(route, 'addRoute: response')
+    if (!this.imposter) {
+      if (this.autoCreate) {
+        this.create()
+      }
+      if (!this.imposter) {
+        this._error('You need to first create the Imposter server')
+        return
+      }
+    }
     this.imposter.addRoute(route)
     let defaultName = 'unknown' + (this.routes.size || this.routes.length)
-    this.routes.add(route.name || name || this._routeName(route) || defaultName)
+    let routeName = route.name || name || this._routeName(route) || defaultName
+    this.routes.add(routeName)
+    this._log('Added route', {
+      routeName,
+      route
+    })
+    this.lastRouteName = routeName
+    return this
   }
 
   _routeName(route) {
@@ -102,7 +133,8 @@ class ImposterManager extends Logger {
 
   create(config = {}) {
     let fullConfig = Object.assign({}, this.defaults.config || {}, this.config || {}, config)
-    return this.imposter = new mbHelper.Imposter(fullConfig)
+    this.imposter = new mbHelper.Imposter(fullConfig)
+    return this
   }
 }
 
