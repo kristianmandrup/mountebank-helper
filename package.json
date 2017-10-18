@@ -19,6 +19,7 @@
   "author": "Alex Tzinov",
   "license": "ISC",
   "dependencies": {
+    "guid": "0.0.12",
     "lodash": "^4.13.1",
     "mountebank": "bbyars/mountebank",
     "node-fetch": "^1.5.3",
