@@ -6,6 +6,8 @@
 
 const fetch = require('node-fetch');
 const _ = require('lodash');
+const util = require('util');
+const Guid = require('guid');
 
 function flatten(data) {
   return data.reduce((r, e) => r.concat(Array.isArray(e) ? flatten(e) : [e]), [])
@@ -130,7 +132,10 @@ class Imposter extends Logger {
         }
       };
     }
-    this.ImposterInformation.routeInformation[normalizedURI] = uriInfo
+
+    const key = `${normalizedURI}|${Guid.create()}}`;
+
+    this.ImposterInformation.routeInformation[key] = uriInfo
   }
 
   /* This will take our state (our swagger-like representation of our routes) and construct our mountebank-formatted body
@@ -176,24 +181,35 @@ class Imposter extends Logger {
             mbPredicates = flatten(mbPredicates)
           }
 
-          if (!mbPredicates || mbPredicates.length === 0) {
-            const mbPredicate = Imposter._createPredicate('matches', {
-              'method': verb,
-              'path': route
-            });
-            mbPredicates.push(mbPredicate)
-          } else {
-            // no predicates
-          }
+          const path = route.split('|')[0];          
+          const mbPredicate = Imposter._createPredicate('matches', {
+            'method': verb,
+            'path': path
+          });
+
+          mbPredicates.push(mbPredicate);          
+        }
+
+        let mbPredicatesNew = mbPredicates;
+
+        if (mbPredicates.length > 1) {
+          const result = [];
+
+          result.push({
+            and: mbPredicates
+          });
+
+          mbPredicatesNew = result;
         }
 
         // shove these portions into our final complete response in the form of a stub
         CompleteResponse.stubs.push({
-          predicates: mbPredicates,
+          predicates: mbPredicatesNew,
           responses: [mbResponse]
         });
       }
     }
+
     return CompleteResponse;
   }
 
