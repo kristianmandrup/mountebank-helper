@@ -1,7 +1,7 @@
 {
   "name": "mountebank-helper",
   "version": "1.2.1",
-  "repository": "https://github.com/Tzinov15/mountebank-helper",
+  "repository": "https://github.com/sky-uk/mountebank-helper",
   "description": "A simple Javascript wrapper to easily interface with Mountebank and not have to deal with its abstract object structure requirements.",
   "main": "./src/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
   "dependencies": {
     "guid": "0.0.12",
     "lodash": "^4.13.1",
-    "mountebank": "bbyars/mountebank",
+    "mountebank": "1.15.0",
     "node-fetch": "^1.5.3",
     "tcp-port-used": "^0.1.2"
   },
